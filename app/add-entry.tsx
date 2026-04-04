@@ -1,6 +1,6 @@
-import { useRouter } from "expo-router";
-import { Button, Card } from "heroui-native";
-import { useCallback, useState } from "react";
+import { useRouter } from 'expo-router';
+import { Button, Card } from 'heroui-native';
+import { useCallback, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -11,24 +11,24 @@ import {
   Text,
   TextInput,
   View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useContacts, type ContactEntry } from "@/hooks/use-contacts";
-import { useTransactions } from "@/hooks/use-transactions";
-import type { TransactionType } from "@/types";
+import { useContacts, type ContactEntry } from '@/hooks/use-contacts';
+import { useTransactions } from '@/hooks/use-transactions';
+import type { TransactionType } from '@/types';
 
 export default function AddEntryScreen() {
   const router = useRouter();
   const { addTransaction } = useTransactions();
   const { searchContacts, requestPermission } = useContacts();
 
-  const [personName, setPersonName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [amount, setAmount] = useState("");
-  const [type, setType] = useState<TransactionType>("given");
-  const [interest, setInterest] = useState("");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+  const [personName, setPersonName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [amount, setAmount] = useState('');
+  const [type, setType] = useState<TransactionType>('given');
+  const [interest, setInterest] = useState('');
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [saving, setSaving] = useState(false);
 
   // Contact search state
@@ -47,24 +47,24 @@ export default function AddEntryScreen() {
         setShowContactResults(false);
       }
     },
-    [searchContacts],
+    [searchContacts]
   );
 
   const selectContact = useCallback((contact: ContactEntry) => {
     setPersonName(contact.name);
-    setPhone(contact.phone ?? "");
+    setPhone(contact.phone ?? '');
     setContactResults([]);
     setShowContactResults(false);
   }, []);
 
   const handleSave = useCallback(async () => {
     if (!personName.trim()) {
-      Alert.alert("Error", "Please enter a person name.");
+      Alert.alert('Error', 'Please enter a person name.');
       return;
     }
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      Alert.alert("Error", "Please enter a valid amount.");
+      Alert.alert('Error', 'Please enter a valid amount.');
       return;
     }
 
@@ -77,16 +77,14 @@ export default function AddEntryScreen() {
         amount: parsedAmount,
         type,
         interest:
-          parsedInterest !== null &&
-          !isNaN(parsedInterest) &&
-          parsedInterest > 0
+          parsedInterest !== null && !isNaN(parsedInterest) && parsedInterest > 0
             ? parsedInterest
             : null,
         date: new Date(date).toISOString(),
       });
       router.back();
     } catch {
-      Alert.alert("Error", "Failed to save transaction.");
+      Alert.alert('Error', 'Failed to save transaction.');
     } finally {
       setSaving(false);
     }
@@ -96,8 +94,7 @@ export default function AddEntryScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()}>
             <Text style={styles.cancelText}>Cancel</Text>
@@ -109,47 +106,28 @@ export default function AddEntryScreen() {
         <ScrollView
           contentContainerStyle={styles.form}
           showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
+          keyboardShouldPersistTaps="handled">
           {/* Type Toggle */}
           <Text style={styles.label}>Type</Text>
           <View style={styles.typeRow}>
-            <Pressable style={{ flex: 1 }} onPress={() => setType("given")}>
+            <Pressable style={{ flex: 1 }} onPress={() => setType('given')}>
               <Card
-                variant={type === "given" ? "secondary" : "default"}
-                style={[
-                  styles.typeCard,
-                  type === "given" && styles.typeCardActive,
-                ]}
-              >
+                variant={type === 'given' ? 'secondary' : 'default'}
+                style={[styles.typeCard, type === 'given' && styles.typeCardActive]}>
                 <Card.Body>
-                  <Text
-                    style={[
-                      styles.typeText,
-                      type === "given" && { color: "#E53935" },
-                    ]}
-                  >
+                  <Text style={[styles.typeText, type === 'given' && { color: '#E53935' }]}>
                     Given
                   </Text>
                   <Text style={styles.typeHint}>Money you gave</Text>
                 </Card.Body>
               </Card>
             </Pressable>
-            <Pressable style={{ flex: 1 }} onPress={() => setType("taken")}>
+            <Pressable style={{ flex: 1 }} onPress={() => setType('taken')}>
               <Card
-                variant={type === "taken" ? "secondary" : "default"}
-                style={[
-                  styles.typeCard,
-                  type === "taken" && styles.typeCardActive,
-                ]}
-              >
+                variant={type === 'taken' ? 'secondary' : 'default'}
+                style={[styles.typeCard, type === 'taken' && styles.typeCardActive]}>
                 <Card.Body>
-                  <Text
-                    style={[
-                      styles.typeText,
-                      type === "taken" && { color: "#43A047" },
-                    ]}
-                  >
+                  <Text style={[styles.typeText, type === 'taken' && { color: '#43A047' }]}>
                     Taken
                   </Text>
                   <Text style={styles.typeHint}>Money you received</Text>
@@ -175,12 +153,9 @@ export default function AddEntryScreen() {
                     <Pressable
                       key={`${contact.name}-${i}`}
                       onPress={() => selectContact(contact)}
-                      style={styles.contactItem}
-                    >
+                      style={styles.contactItem}>
                       <Text style={styles.contactName}>{contact.name}</Text>
-                      {contact.phone && (
-                        <Text style={styles.contactPhone}>{contact.phone}</Text>
-                      )}
+                      {contact.phone && <Text style={styles.contactPhone}>{contact.phone}</Text>}
                     </Pressable>
                   ))}
                 </Card.Body>
@@ -191,13 +166,9 @@ export default function AddEntryScreen() {
             onPress={async () => {
               const granted = await requestPermission();
               if (!granted) {
-                Alert.alert(
-                  "Permission Required",
-                  "Please allow access to contacts to search.",
-                );
+                Alert.alert('Permission Required', 'Please allow access to contacts to search.');
               }
-            }}
-          >
+            }}>
             <Text style={styles.contactsLink}>Allow contacts access</Text>
           </Pressable>
 
@@ -230,13 +201,8 @@ export default function AddEntryScreen() {
             onChangeText={setDate}
           />
 
-          <Button
-            variant="primary"
-            size="lg"
-            onPress={handleSave}
-            isDisabled={saving}
-          >
-            {saving ? "Saving..." : "Save Entry"}
+          <Button variant="primary" size="lg" onPress={handleSave} isDisabled={saving}>
+            {saving ? 'Saving...' : 'Save Entry'}
           </Button>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -247,24 +213,24 @@ export default function AddEntryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: '#f8f9fa',
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   cancelText: {
     fontSize: 16,
-    color: "#0066FF",
-    fontWeight: "500",
+    color: '#0066FF',
+    fontWeight: '500',
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: "700",
-    color: "#111",
+    fontWeight: '700',
+    color: '#111',
   },
   form: {
     padding: 16,
@@ -273,43 +239,43 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
+    fontWeight: '600',
+    color: '#333',
     marginTop: 8,
   },
   input: {
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: '#ddd',
     padding: 14,
     fontSize: 16,
-    color: "#111",
+    color: '#111',
   },
   typeRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
     marginBottom: 4,
   },
   typeCard: {
     borderWidth: 2,
-    borderColor: "transparent",
+    borderColor: 'transparent',
   },
   typeCardActive: {
-    borderColor: "#0066FF",
+    borderColor: '#0066FF',
   },
   typeText: {
     fontSize: 16,
-    fontWeight: "700",
-    color: "#333",
+    fontWeight: '700',
+    color: '#333',
   },
   typeHint: {
     fontSize: 12,
-    color: "#999",
+    color: '#999',
     marginTop: 2,
   },
   contactDropdown: {
-    position: "absolute",
+    position: 'absolute',
     top: 52,
     left: 0,
     right: 0,
@@ -318,21 +284,21 @@ const styles = StyleSheet.create({
   contactItem: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: '#f0f0f0',
   },
   contactName: {
     fontSize: 15,
-    fontWeight: "600",
-    color: "#111",
+    fontWeight: '600',
+    color: '#111',
   },
   contactPhone: {
     fontSize: 13,
-    color: "#888",
+    color: '#888',
     marginTop: 1,
   },
   contactsLink: {
     fontSize: 13,
-    color: "#0066FF",
+    color: '#0066FF',
     marginBottom: 4,
   },
 });

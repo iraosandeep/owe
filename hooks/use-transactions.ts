@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
-import * as Crypto from "expo-crypto";
-import { eq, desc } from "drizzle-orm";
-import { db } from "@/db/client";
-import { transactions } from "@/db/schema";
-import type { Transaction, TransactionType } from "@/types";
+import { useCallback, useEffect, useState } from 'react';
+import * as Crypto from 'expo-crypto';
+import { eq, desc } from 'drizzle-orm';
+import { db } from '@/db/client';
+import { transactions } from '@/db/schema';
+import type { Transaction, TransactionType } from '@/types';
 
 type NewTransaction = {
   personName: string;

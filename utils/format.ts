@@ -3,7 +3,7 @@
  */
 export function formatCurrency(amount: number): string {
   const abs = Math.abs(amount);
-  const formatted = abs.toLocaleString("en-IN", {
+  const formatted = abs.toLocaleString('en-IN', {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
@@ -15,10 +15,10 @@ export function formatCurrency(amount: number): string {
  */
 export function formatDate(isoString: string): string {
   const date = new Date(isoString);
-  return date.toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
+  return date.toLocaleDateString('en-IN', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
   });
 }
 
@@ -27,10 +27,10 @@ export function formatDate(isoString: string): string {
  */
 export function getInitials(name: string): string {
   return name
-    .split(" ")
+    .split(' ')
     .filter(Boolean)
     .map((part) => part[0])
     .slice(0, 2)
-    .join("")
+    .join('')
     .toUpperCase();
 }

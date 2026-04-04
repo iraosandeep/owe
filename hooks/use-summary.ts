@@ -1,7 +1,7 @@
-import { db } from "@/db/client";
-import { transactions } from "@/db/schema";
-import type { DashboardSummary, PersonSummary } from "@/types";
-import { useCallback, useEffect, useState } from "react";
+import { db } from '@/db/client';
+import { transactions } from '@/db/schema';
+import type { DashboardSummary, PersonSummary } from '@/types';
+import { useCallback, useEffect, useState } from 'react';
 
 export function useSummary() {
   const [summary, setSummary] = useState<DashboardSummary>({
@@ -24,7 +24,7 @@ export function useSummary() {
 
       for (const row of rows) {
         const amount = row.amount;
-        if (row.type === "given") {
+        if (row.type === 'given') {
           totalGiven += amount;
         } else {
           totalTaken += amount;
@@ -37,7 +37,7 @@ export function useSummary() {
           taken: 0,
           count: 0,
         };
-        if (row.type === "given") {
+        if (row.type === 'given') {
           existing.given += amount;
         } else {
           existing.taken += amount;
@@ -66,9 +66,7 @@ export function useSummary() {
           transactionCount: value.count,
         });
       });
-      personList.sort(
-        (a, b) => Math.abs(b.netBalance) - Math.abs(a.netBalance),
-      );
+      personList.sort((a, b) => Math.abs(b.netBalance) - Math.abs(a.netBalance));
       setPeople(personList);
     } finally {
       setLoading(false);

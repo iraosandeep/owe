@@ -1,5 +1,5 @@
-import * as Contacts from "expo-contacts";
-import { useCallback, useState } from "react";
+import * as Contacts from 'expo-contacts';
+import { useCallback, useState } from 'react';
 
 export interface ContactEntry {
   name: string;
@@ -11,7 +11,7 @@ export function useContacts() {
 
   const requestPermission = useCallback(async () => {
     const { status } = await Contacts.requestPermissionsAsync();
-    const granted = status === "granted";
+    const granted = status === 'granted';
     setHasPermission(granted);
     return granted;
   }, []);
@@ -59,7 +59,7 @@ export function useContacts() {
           phone: c.phoneNumbers?.[0]?.number ?? null,
         }));
     },
-    [hasPermission, requestPermission],
+    [hasPermission, requestPermission]
   );
 
   return { hasPermission, requestPermission, searchContacts, pickContact };

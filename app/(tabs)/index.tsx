@@ -1,11 +1,11 @@
-import { View, ScrollView, Pressable, Text, StyleSheet } from "react-native";
-import { Card, Button, Chip, Separator } from "heroui-native";
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, ScrollView, Pressable, Text, StyleSheet } from 'react-native';
+import { Card, Button, Chip, Separator } from 'heroui-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback } from 'react';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useSummary } from "@/hooks/use-summary";
-import { formatCurrency } from "@/utils/format";
+import { useSummary } from '@/hooks/use-summary';
+import { formatCurrency } from '@/utils/format';
 
 export default function DashboardScreen() {
   const { summary, people, loading, reload } = useSummary();
@@ -19,17 +19,10 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>Owe</Text>
-          <Button
-            variant="primary"
-            size="md"
-            onPress={() => router.push("/add-entry")}
-          >
+          <Button variant="primary" size="md" onPress={() => router.push('/add-entry')}>
             + Add Entry
           </Button>
         </View>
@@ -38,7 +31,7 @@ export default function DashboardScreen() {
           <Card variant="default" style={styles.summaryCard}>
             <Card.Body>
               <Text style={styles.cardLabel}>Given</Text>
-              <Text style={[styles.cardAmount, { color: "#E53935" }]}>
+              <Text style={[styles.cardAmount, { color: '#E53935' }]}>
                 {formatCurrency(summary.totalGiven)}
               </Text>
             </Card.Body>
@@ -46,7 +39,7 @@ export default function DashboardScreen() {
           <Card variant="default" style={styles.summaryCard}>
             <Card.Body>
               <Text style={styles.cardLabel}>Taken</Text>
-              <Text style={[styles.cardAmount, { color: "#43A047" }]}>
+              <Text style={[styles.cardAmount, { color: '#43A047' }]}>
                 {formatCurrency(summary.totalTaken)}
               </Text>
             </Card.Body>
@@ -59,17 +52,16 @@ export default function DashboardScreen() {
             <Text
               style={[
                 styles.netAmount,
-                { color: summary.netBalance >= 0 ? "#E53935" : "#43A047" },
-              ]}
-            >
+                { color: summary.netBalance >= 0 ? '#E53935' : '#43A047' },
+              ]}>
               {formatCurrency(summary.netBalance)}
             </Text>
             <Text style={styles.netHint}>
               {summary.netBalance > 0
-                ? "Others owe you"
+                ? 'Others owe you'
                 : summary.netBalance < 0
-                  ? "You owe others"
-                  : "All settled up"}
+                  ? 'You owe others'
+                  : 'All settled up'}
             </Text>
           </Card.Body>
         </Card>
@@ -78,17 +70,12 @@ export default function DashboardScreen() {
 
         <Text style={styles.sectionTitle}>People</Text>
         {people.length === 0 && !loading && (
-          <Text style={styles.emptyText}>
-            No transactions yet. Tap + Add Entry to get started.
-          </Text>
+          <Text style={styles.emptyText}>No transactions yet. Tap + Add Entry to get started.</Text>
         )}
         {people.map((person) => (
           <Pressable
             key={person.personName}
-            onPress={() =>
-              router.push(`/person/${encodeURIComponent(person.personName)}`)
-            }
-          >
+            onPress={() => router.push(`/person/${encodeURIComponent(person.personName)}`)}>
             <Card variant="default" style={styles.personCard}>
               <Card.Body>
                 <View style={styles.personRow}>
@@ -96,7 +83,7 @@ export default function DashboardScreen() {
                     <Text style={styles.personName}>{person.personName}</Text>
                     <Text style={styles.personMeta}>
                       {person.transactionCount} transaction
-                      {person.transactionCount !== 1 ? "s" : ""}
+                      {person.transactionCount !== 1 ? 's' : ''}
                     </Text>
                   </View>
                   <View style={styles.personBalance}>
@@ -106,13 +93,12 @@ export default function DashboardScreen() {
                         {
                           color:
                             person.netBalance > 0
-                              ? "#E53935"
+                              ? '#E53935'
                               : person.netBalance < 0
-                                ? "#43A047"
-                                : "#666",
+                                ? '#43A047'
+                                : '#666',
                         },
-                      ]}
-                    >
+                      ]}>
                       {formatCurrency(Math.abs(person.netBalance))}
                     </Text>
                     <Chip
@@ -120,18 +106,17 @@ export default function DashboardScreen() {
                       size="sm"
                       color={
                         person.netBalance > 0
-                          ? "danger"
+                          ? 'danger'
                           : person.netBalance < 0
-                            ? "success"
-                            : "default"
-                      }
-                    >
+                            ? 'success'
+                            : 'default'
+                      }>
                       <Chip.Label>
                         {person.netBalance > 0
-                          ? "Owes you"
+                          ? 'Owes you'
                           : person.netBalance < 0
-                            ? "You owe"
-                            : "Settled"}
+                            ? 'You owe'
+                            : 'Settled'}
                       </Chip.Label>
                     </Chip>
                   </View>
@@ -148,25 +133,25 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8f9fa",
+    backgroundColor: '#f8f9fa',
   },
   scrollContent: {
     padding: 16,
     paddingBottom: 32,
   },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 20,
   },
   title: {
     fontSize: 32,
-    fontWeight: "800",
-    color: "#111",
+    fontWeight: '800',
+    color: '#111',
   },
   cardsRow: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
     marginBottom: 12,
   },
@@ -175,72 +160,72 @@ const styles = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#666",
+    fontWeight: '500',
+    color: '#666',
     marginBottom: 4,
   },
   cardAmount: {
     fontSize: 22,
-    fontWeight: "700",
+    fontWeight: '700',
   },
   netCard: {
     marginBottom: 20,
   },
   netLabel: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#666",
+    fontWeight: '500',
+    color: '#666',
     marginBottom: 4,
   },
   netAmount: {
     fontSize: 28,
-    fontWeight: "800",
+    fontWeight: '800',
   },
   netHint: {
     fontSize: 13,
-    color: "#999",
+    color: '#999',
     marginTop: 2,
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: "700",
-    color: "#111",
+    fontWeight: '700',
+    color: '#111',
     marginTop: 16,
     marginBottom: 12,
   },
   emptyText: {
     fontSize: 14,
-    color: "#999",
-    textAlign: "center",
+    color: '#999',
+    textAlign: 'center',
     marginTop: 24,
   },
   personCard: {
     marginBottom: 8,
   },
   personRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   personInfo: {
     flex: 1,
   },
   personName: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#111",
+    fontWeight: '600',
+    color: '#111',
   },
   personMeta: {
     fontSize: 13,
-    color: "#999",
+    color: '#999',
     marginTop: 2,
   },
   personBalance: {
-    alignItems: "flex-end",
+    alignItems: 'flex-end',
     gap: 4,
   },
   personAmount: {
     fontSize: 18,
-    fontWeight: "700",
+    fontWeight: '700',
   },
 });
