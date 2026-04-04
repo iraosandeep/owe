@@ -9,6 +9,11 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "db:generate": "drizzle-kit generate",
+    "db:check": "drizzle-kit check",
+    "db:up": "drizzle-kit up",
+    "db:export": "drizzle-kit export",
+    "db:migrate": "node ./scripts/db-migrate.js",
+    "db:studio": "node ./scripts/db-studio.js",
     "lint": "expo lint",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
