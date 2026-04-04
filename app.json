@@ -38,6 +38,13 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      "expo-sqlite",
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "Allow Owe to access your contacts to quickly select people for transactions."
+        }
       ]
     ],
     "experiments": {
