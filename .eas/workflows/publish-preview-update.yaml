@@ -1,0 +1,30 @@
+name: Publish Preview Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        type: string
+        description: Optional custom message for the update
+        required: false
+      branch:
+        type: string
+        description: EAS Update branch to publish to
+        required: false
+        default: preview
+  pull_request_labeled:
+    labels: [preview]
+
+jobs:
+  publish_preview_update:
+    name: Publish Preview Update
+    type: update
+    environment: preview
+    params:
+      platform: all
+      branch: ${{ inputs.branch || 'preview' }}
+      message: ${{ inputs.message || github.ref_name }}
+
+concurrency:
+  cancel_in_progress: true
+  group: ${{ workflow.filename }}-${{ github.ref }}
