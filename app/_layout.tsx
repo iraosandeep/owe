@@ -11,6 +11,7 @@ import { db } from '@/db/client';
 import { seedDatabase } from '@/db/seed';
 import migrations from '@/drizzle/migrations';
 import '@/global.css';
+import { ThemePreferenceProvider, useThemePreference } from '@/hooks/use-theme-preference';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -40,27 +41,37 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <HeroUINativeProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="add-entry"
-            options={{
-              presentation: 'modal',
-              title: 'Add Entry',
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="person/[name]"
-            options={{
-              title: 'Person',
-              headerShown: false,
-            }}
-          />
-        </Stack>
-        <StatusBar style="auto" />
-      </HeroUINativeProvider>
+      <ThemePreferenceProvider>
+        <AppContent />
+      </ThemePreferenceProvider>
     </GestureHandlerRootView>
+  );
+}
+
+function AppContent() {
+  const { resolvedTheme } = useThemePreference();
+
+  return (
+    <HeroUINativeProvider>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="add-entry"
+          options={{
+            presentation: 'modal',
+            title: 'Add Entry',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="person/[name]"
+          options={{
+            title: 'Person',
+            headerShown: false,
+          }}
+        />
+      </Stack>
+      <StatusBar style={resolvedTheme === 'dark' ? 'light' : 'dark'} />
+    </HeroUINativeProvider>
   );
 }

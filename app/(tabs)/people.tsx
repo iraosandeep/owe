@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Card, Chip } from 'heroui-native';
+import { Card, Chip, useThemeColor } from 'heroui-native';
 import { useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,15 @@ import { formatCurrency, getInitials } from '@/utils/format';
 export default function PeopleScreen() {
   const { people, loading, reload } = useSummary();
   const router = useRouter();
+  const [background, foreground, muted, accent, accentForeground, danger, success] = useThemeColor([
+    'background',
+    'foreground',
+    'muted',
+    'accent',
+    'accent-foreground',
+    'danger',
+    'success',
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -18,10 +27,12 @@ export default function PeopleScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>People</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: background }]}>
+      <Text style={[styles.title, { color: foreground }]}>People</Text>
       <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
-        {people.length === 0 && !loading && <Text style={styles.emptyText}>No people yet.</Text>}
+        {people.length === 0 && !loading && (
+          <Text style={[styles.emptyText, { color: muted }]}>No people yet.</Text>
+        )}
         {people.map((person) => (
           <Pressable
             key={person.personName}
@@ -29,13 +40,19 @@ export default function PeopleScreen() {
             <Card variant="default" style={styles.personCard}>
               <Card.Body>
                 <View style={styles.personRow}>
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{getInitials(person.personName)}</Text>
+                  <View style={[styles.avatar, { backgroundColor: accent }]}>
+                    <Text style={[styles.avatarText, { color: accentForeground }]}>
+                      {getInitials(person.personName)}
+                    </Text>
                   </View>
                   <View style={styles.personInfo}>
-                    <Text style={styles.personName}>{person.personName}</Text>
-                    {person.phone && <Text style={styles.personPhone}>{person.phone}</Text>}
-                    <Text style={styles.personMeta}>
+                    <Text style={[styles.personName, { color: foreground }]}>
+                      {person.personName}
+                    </Text>
+                    {person.phone && (
+                      <Text style={[styles.personPhone, { color: muted }]}>{person.phone}</Text>
+                    )}
+                    <Text style={[styles.personMeta, { color: muted }]}>
                       {person.transactionCount} transaction
                       {person.transactionCount !== 1 ? 's' : ''}
                     </Text>
@@ -47,10 +64,10 @@ export default function PeopleScreen() {
                         {
                           color:
                             person.netBalance > 0
-                              ? '#E53935'
+                              ? danger
                               : person.netBalance < 0
-                                ? '#43A047'
-                                : '#666',
+                                ? success
+                                : muted,
                         },
                       ]}>
                       {formatCurrency(Math.abs(person.netBalance))}
@@ -87,12 +104,10 @@ export default function PeopleScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#111',
     paddingHorizontal: 16,
     paddingTop: 8,
     paddingBottom: 12,
@@ -103,7 +118,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
     textAlign: 'center',
     marginTop: 40,
   },
@@ -119,12 +133,10 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#0066FF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '700',
   },
@@ -134,16 +146,13 @@ const styles = StyleSheet.create({
   personName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111',
   },
   personPhone: {
     fontSize: 13,
-    color: '#888',
     marginTop: 1,
   },
   personMeta: {
     fontSize: 12,
-    color: '#bbb',
     marginTop: 1,
   },
   personBalance: {

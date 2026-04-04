@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { Button, Card } from 'heroui-native';
+import { Button, Card, useThemeColor } from 'heroui-native';
 import { useCallback, useState } from 'react';
 import {
   Alert,
@@ -22,6 +22,19 @@ export default function AddEntryScreen() {
   const router = useRouter();
   const { addTransaction } = useTransactions();
   const { searchContacts, requestPermission } = useContacts();
+  const [background, foreground, muted, accent, field, fieldForeground, fieldBorder, separator, danger, success] =
+    useThemeColor([
+      'background',
+      'foreground',
+      'muted',
+      'accent',
+      'field',
+      'field-foreground',
+      'field-border',
+      'separator',
+      'danger',
+      'success',
+    ]);
 
   const [personName, setPersonName] = useState('');
   const [phone, setPhone] = useState('');
@@ -91,15 +104,15 @@ export default function AddEntryScreen() {
   }, [personName, amount, type, interest, date, phone, addTransaction, router]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: background }]}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.header}>
           <Pressable onPress={() => router.back()}>
-            <Text style={styles.cancelText}>Cancel</Text>
+            <Text style={[styles.cancelText, { color: accent }]}>Cancel</Text>
           </Pressable>
-          <Text style={styles.headerTitle}>Add Entry</Text>
+          <Text style={[styles.headerTitle, { color: foreground }]}>Add Entry</Text>
           <View style={{ width: 60 }} />
         </View>
 
@@ -108,40 +121,48 @@ export default function AddEntryScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled">
           {/* Type Toggle */}
-          <Text style={styles.label}>Type</Text>
+          <Text style={[styles.label, { color: foreground }]}>Type</Text>
           <View style={styles.typeRow}>
             <Pressable style={{ flex: 1 }} onPress={() => setType('given')}>
               <Card
                 variant={type === 'given' ? 'secondary' : 'default'}
-                style={[styles.typeCard, type === 'given' && styles.typeCardActive]}>
+                style={[styles.typeCard, type === 'given' && { borderColor: accent }]}>
                 <Card.Body>
-                  <Text style={[styles.typeText, type === 'given' && { color: '#E53935' }]}>
+                  <Text style={[styles.typeText, { color: type === 'given' ? danger : foreground }]}>
                     Given
                   </Text>
-                  <Text style={styles.typeHint}>Money you gave</Text>
+                  <Text style={[styles.typeHint, { color: muted }]}>Money you gave</Text>
                 </Card.Body>
               </Card>
             </Pressable>
             <Pressable style={{ flex: 1 }} onPress={() => setType('taken')}>
               <Card
                 variant={type === 'taken' ? 'secondary' : 'default'}
-                style={[styles.typeCard, type === 'taken' && styles.typeCardActive]}>
+                style={[styles.typeCard, type === 'taken' && { borderColor: accent }]}>
                 <Card.Body>
-                  <Text style={[styles.typeText, type === 'taken' && { color: '#43A047' }]}>
+                  <Text style={[styles.typeText, { color: type === 'taken' ? success : foreground }]}>
                     Taken
                   </Text>
-                  <Text style={styles.typeHint}>Money you received</Text>
+                  <Text style={[styles.typeHint, { color: muted }]}>Money you received</Text>
                 </Card.Body>
               </Card>
             </Pressable>
           </View>
 
           {/* Person Name */}
-          <Text style={styles.label}>Person</Text>
+          <Text style={[styles.label, { color: foreground }]}>Person</Text>
           <View>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: field,
+                  borderColor: fieldBorder,
+                  color: fieldForeground,
+                },
+              ]}
               placeholder="Search contacts or type a name..."
+              placeholderTextColor={muted}
               value={personName}
               onChangeText={handleContactSearch}
               autoCapitalize="words"
@@ -153,9 +174,9 @@ export default function AddEntryScreen() {
                     <Pressable
                       key={`${contact.name}-${i}`}
                       onPress={() => selectContact(contact)}
-                      style={styles.contactItem}>
-                      <Text style={styles.contactName}>{contact.name}</Text>
-                      {contact.phone && <Text style={styles.contactPhone}>{contact.phone}</Text>}
+                      style={[styles.contactItem, { borderBottomColor: separator }]}>
+                      <Text style={[styles.contactName, { color: foreground }]}>{contact.name}</Text>
+                      {contact.phone && <Text style={[styles.contactPhone, { color: muted }]}>{contact.phone}</Text>}
                     </Pressable>
                   ))}
                 </Card.Body>
@@ -169,34 +190,58 @@ export default function AddEntryScreen() {
                 Alert.alert('Permission Required', 'Please allow access to contacts to search.');
               }
             }}>
-            <Text style={styles.contactsLink}>Allow contacts access</Text>
+            <Text style={[styles.contactsLink, { color: accent }]}>Allow contacts access</Text>
           </Pressable>
 
           {/* Amount */}
-          <Text style={styles.label}>Amount</Text>
+          <Text style={[styles.label, { color: foreground }]}>Amount</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: field,
+                borderColor: fieldBorder,
+                color: fieldForeground,
+              },
+            ]}
             placeholder="0"
+            placeholderTextColor={muted}
             value={amount}
             onChangeText={setAmount}
             keyboardType="numeric"
           />
 
           {/* Interest */}
-          <Text style={styles.label}>Interest % (optional)</Text>
+          <Text style={[styles.label, { color: foreground }]}>Interest % (optional)</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: field,
+                borderColor: fieldBorder,
+                color: fieldForeground,
+              },
+            ]}
             placeholder="e.g., 5"
+            placeholderTextColor={muted}
             value={interest}
             onChangeText={setInterest}
             keyboardType="numeric"
           />
 
           {/* Date */}
-          <Text style={styles.label}>Date</Text>
+          <Text style={[styles.label, { color: foreground }]}>Date</Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: field,
+                borderColor: fieldBorder,
+                color: fieldForeground,
+              },
+            ]}
             placeholder="YYYY-MM-DD"
+            placeholderTextColor={muted}
             value={date}
             onChangeText={setDate}
           />
@@ -213,7 +258,6 @@ export default function AddEntryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   header: {
     flexDirection: 'row',
@@ -224,13 +268,11 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     fontSize: 16,
-    color: '#0066FF',
     fontWeight: '500',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111',
   },
   form: {
     padding: 16,
@@ -240,17 +282,13 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
     marginTop: 8,
   },
   input: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#ddd',
     padding: 14,
     fontSize: 16,
-    color: '#111',
   },
   typeRow: {
     flexDirection: 'row',
@@ -261,17 +299,12 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'transparent',
   },
-  typeCardActive: {
-    borderColor: '#0066FF',
-  },
   typeText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#333',
   },
   typeHint: {
     fontSize: 12,
-    color: '#999',
     marginTop: 2,
   },
   contactDropdown: {
@@ -284,21 +317,17 @@ const styles = StyleSheet.create({
   contactItem: {
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   contactName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#111',
   },
   contactPhone: {
     fontSize: 13,
-    color: '#888',
     marginTop: 1,
   },
   contactsLink: {
     fontSize: 13,
-    color: '#0066FF',
     marginBottom: 4,
   },
 });

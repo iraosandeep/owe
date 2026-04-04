@@ -1,14 +1,27 @@
-import { Tabs } from 'expo-router';
-import { IconSymbol } from '@/components/ui/icon-symbol';
 import { HapticTab } from '@/components/haptic-tab';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { Tabs } from 'expo-router';
+import { useThemeColor } from 'heroui-native';
 
 export default function TabLayout() {
+  const [accent, muted, surface, separator] = useThemeColor([
+    'accent',
+    'muted',
+    'surface',
+    'separator',
+  ]);
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarActiveTintColor: '#0066FF',
+        tabBarActiveTintColor: accent,
+        tabBarInactiveTintColor: muted,
+        tabBarStyle: {
+          backgroundColor: surface,
+          borderTopColor: separator,
+        },
       }}>
       <Tabs.Screen
         name="index"
@@ -29,6 +42,13 @@ export default function TabLayout() {
         options={{
           title: 'People',
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="person.2.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color }) => <IconSymbol size={24} name="gearshape.fill" color={color} />,
         }}
       />
     </Tabs>

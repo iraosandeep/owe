@@ -1,5 +1,5 @@
 import { View, ScrollView, Text, StyleSheet, Pressable } from 'react-native';
-import { Card, Chip, Separator } from 'heroui-native';
+import { Card, Chip, Separator, useThemeColor } from 'heroui-native';
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -28,6 +28,15 @@ export default function PersonDetailScreen() {
     .reduce((sum, t) => sum + t.amount, 0);
   const netBalance = totalGiven - totalTaken;
   const phone = transactions.find((t) => t.phone)?.phone ?? null;
+  const [background, foreground, muted, accent, accentForeground, danger, success] = useThemeColor([
+    'background',
+    'foreground',
+    'muted',
+    'accent',
+    'accent-foreground',
+    'danger',
+    'success',
+  ]);
 
   // Calculate total with interest
   const totalWithInterest = transactions.reduce((sum, t) => {
@@ -36,39 +45,39 @@ export default function PersonDetailScreen() {
   }, 0);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: background }]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}>
-          <Text style={styles.backText}>Back</Text>
+          <Text style={[styles.backText, { color: accent }]}>Back</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>Person Detail</Text>
+        <Text style={[styles.headerTitle, { color: foreground }]}>Person Detail</Text>
         <View style={{ width: 50 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Person Info */}
         <View style={styles.personHeader}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{getInitials(decodedName)}</Text>
+          <View style={[styles.avatar, { backgroundColor: accent }]}>
+            <Text style={[styles.avatarText, { color: accentForeground }]}>{getInitials(decodedName)}</Text>
           </View>
-          <Text style={styles.personName}>{decodedName}</Text>
-          {phone && <Text style={styles.personPhone}>{phone}</Text>}
+          <Text style={[styles.personName, { color: foreground }]}>{decodedName}</Text>
+          {phone && <Text style={[styles.personPhone, { color: muted }]}>{phone}</Text>}
         </View>
 
         {/* Summary Cards */}
         <View style={styles.cardsRow}>
           <Card variant="default" style={styles.summaryCard}>
             <Card.Body>
-              <Text style={styles.cardLabel}>Given</Text>
-              <Text style={[styles.cardAmount, { color: '#E53935' }]}>
+              <Text style={[styles.cardLabel, { color: muted }]}>Given</Text>
+              <Text style={[styles.cardAmount, { color: danger }]}>
                 {formatCurrency(totalGiven)}
               </Text>
             </Card.Body>
           </Card>
           <Card variant="default" style={styles.summaryCard}>
             <Card.Body>
-              <Text style={styles.cardLabel}>Taken</Text>
-              <Text style={[styles.cardAmount, { color: '#43A047' }]}>
+              <Text style={[styles.cardLabel, { color: muted }]}>Taken</Text>
+              <Text style={[styles.cardAmount, { color: success }]}>
                 {formatCurrency(totalTaken)}
               </Text>
             </Card.Body>
@@ -77,11 +86,11 @@ export default function PersonDetailScreen() {
 
         <Card variant="secondary" style={styles.netCard}>
           <Card.Body>
-            <Text style={styles.netLabel}>Net Balance</Text>
-            <Text style={[styles.netAmount, { color: netBalance >= 0 ? '#E53935' : '#43A047' }]}>
+            <Text style={[styles.netLabel, { color: muted }]}>Net Balance</Text>
+            <Text style={[styles.netAmount, { color: netBalance >= 0 ? danger : success }]}>
               {formatCurrency(netBalance)}
             </Text>
-            <Text style={styles.netHint}>
+            <Text style={[styles.netHint, { color: muted }]}>
               {netBalance > 0 ? 'They owe you' : netBalance < 0 ? 'You owe them' : 'All settled'}
             </Text>
           </Card.Body>
@@ -90,17 +99,19 @@ export default function PersonDetailScreen() {
         {totalWithInterest !== netBalance && (
           <Card variant="default" style={styles.interestCard}>
             <Card.Body>
-              <Text style={styles.cardLabel}>With Interest</Text>
+              <Text style={[styles.cardLabel, { color: muted }]}>With Interest</Text>
               <Text
                 style={[
                   styles.cardAmount,
                   {
-                    color: totalWithInterest >= 0 ? '#E53935' : '#43A047',
+                    color: totalWithInterest >= 0 ? danger : success,
                   },
                 ]}>
                 {formatCurrency(totalWithInterest)}
               </Text>
-              <Text style={styles.interestHint}>Including accrued interest to date</Text>
+              <Text style={[styles.interestHint, { color: muted }]}>
+                Including accrued interest to date
+              </Text>
             </Card.Body>
           </Card>
         )}
@@ -108,9 +119,9 @@ export default function PersonDetailScreen() {
         <Separator orientation="horizontal" />
 
         {/* Transactions */}
-        <Text style={styles.sectionTitle}>Transactions</Text>
+        <Text style={[styles.sectionTitle, { color: foreground }]}>Transactions</Text>
         {transactions.length === 0 && !loading && (
-          <Text style={styles.emptyText}>No transactions found.</Text>
+          <Text style={[styles.emptyText, { color: muted }]}>No transactions found.</Text>
         )}
         {transactions.map((txn) => (
           <Card key={txn.id} variant="default" style={styles.txnCard}>
@@ -123,13 +134,13 @@ export default function PersonDetailScreen() {
                     color={txn.type === 'given' ? 'danger' : 'success'}>
                     <Chip.Label>{txn.type === 'given' ? 'Given' : 'Taken'}</Chip.Label>
                   </Chip>
-                  <Text style={styles.txnDate}>{formatDate(txn.date)}</Text>
+                  <Text style={[styles.txnDate, { color: muted }]}>{formatDate(txn.date)}</Text>
                 </View>
                 <Text
                   style={[
                     styles.txnAmount,
                     {
-                      color: txn.type === 'given' ? '#E53935' : '#43A047',
+                      color: txn.type === 'given' ? danger : success,
                     },
                   ]}>
                   {formatCurrency(txn.amount)}
@@ -137,8 +148,8 @@ export default function PersonDetailScreen() {
               </View>
               {txn.interest !== null && txn.interest > 0 && (
                 <View style={styles.interestRow}>
-                  <Text style={styles.interestNote}>{txn.interest}% interest</Text>
-                  <Text style={styles.interestNote}>
+                  <Text style={[styles.interestNote, { color: muted }]}>{txn.interest}% interest</Text>
+                  <Text style={[styles.interestNote, { color: muted }]}>
                     Current:{' '}
                     {formatCurrency(getAmountWithInterest(txn.amount, txn.interest, txn.date))}
                   </Text>
@@ -155,7 +166,6 @@ export default function PersonDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   header: {
     flexDirection: 'row',
@@ -166,13 +176,11 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: 16,
-    color: '#0066FF',
     fontWeight: '500',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#111',
   },
   scrollContent: {
     padding: 16,
@@ -186,24 +194,20 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#0066FF',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   avatarText: {
-    color: '#fff',
     fontSize: 24,
     fontWeight: '700',
   },
   personName: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#111',
   },
   personPhone: {
     fontSize: 14,
-    color: '#888',
     marginTop: 2,
   },
   cardsRow: {
@@ -217,7 +221,6 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666',
     marginBottom: 4,
   },
   cardAmount: {
@@ -230,7 +233,6 @@ const styles = StyleSheet.create({
   netLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666',
     marginBottom: 4,
   },
   netAmount: {
@@ -239,7 +241,6 @@ const styles = StyleSheet.create({
   },
   netHint: {
     fontSize: 13,
-    color: '#999',
     marginTop: 2,
   },
   interestCard: {
@@ -247,19 +248,16 @@ const styles = StyleSheet.create({
   },
   interestHint: {
     fontSize: 12,
-    color: '#999',
     marginTop: 2,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#111',
     marginTop: 16,
     marginBottom: 12,
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
     textAlign: 'center',
     marginTop: 24,
   },
@@ -278,7 +276,6 @@ const styles = StyleSheet.create({
   },
   txnDate: {
     fontSize: 13,
-    color: '#999',
   },
   txnAmount: {
     fontSize: 18,
@@ -291,6 +288,5 @@ const styles = StyleSheet.create({
   },
   interestNote: {
     fontSize: 12,
-    color: '#888',
   },
 });

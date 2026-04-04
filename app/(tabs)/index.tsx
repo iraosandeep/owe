@@ -1,5 +1,5 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Button, Card, Chip, Separator } from 'heroui-native';
+import { Button, Card, Chip, Separator, useThemeColor } from 'heroui-native';
 import { useCallback } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +10,13 @@ import { formatCurrency } from '@/utils/format';
 export default function DashboardScreen() {
   const { summary, people, loading, reload } = useSummary();
   const router = useRouter();
+  const [background, foreground, muted, danger, success] = useThemeColor([
+    'background',
+    'foreground',
+    'muted',
+    'danger',
+    'success',
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -18,10 +25,10 @@ export default function DashboardScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: background }]}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>Owe</Text>
+          <Text style={[styles.title, { color: foreground }]}>Owe</Text>
           <Button variant="primary" size="md" onPress={() => router.push('/add-entry')}>
             + Add Entry
           </Button>
@@ -30,16 +37,16 @@ export default function DashboardScreen() {
         <View style={styles.cardsRow}>
           <Card variant="default" style={styles.summaryCard}>
             <Card.Body>
-              <Text style={styles.cardLabel}>Given</Text>
-              <Text style={[styles.cardAmount, { color: '#E53935' }]}>
+              <Text style={[styles.cardLabel, { color: muted }]}>Given</Text>
+              <Text style={[styles.cardAmount, { color: danger }]}>
                 {formatCurrency(summary.totalGiven)}
               </Text>
             </Card.Body>
           </Card>
           <Card variant="default" style={styles.summaryCard}>
             <Card.Body>
-              <Text style={styles.cardLabel}>Taken</Text>
-              <Text style={[styles.cardAmount, { color: '#43A047' }]}>
+              <Text style={[styles.cardLabel, { color: muted }]}>Taken</Text>
+              <Text style={[styles.cardAmount, { color: success }]}>
                 {formatCurrency(summary.totalTaken)}
               </Text>
             </Card.Body>
@@ -48,15 +55,15 @@ export default function DashboardScreen() {
 
         <Card variant="secondary" style={styles.netCard}>
           <Card.Body>
-            <Text style={styles.netLabel}>Net Balance</Text>
+            <Text style={[styles.netLabel, { color: muted }]}>Net Balance</Text>
             <Text
               style={[
                 styles.netAmount,
-                { color: summary.netBalance >= 0 ? '#E53935' : '#43A047' },
+                { color: summary.netBalance >= 0 ? danger : success },
               ]}>
               {formatCurrency(summary.netBalance)}
             </Text>
-            <Text style={styles.netHint}>
+            <Text style={[styles.netHint, { color: muted }]}>
               {summary.netBalance > 0
                 ? 'Others owe you'
                 : summary.netBalance < 0
@@ -68,9 +75,11 @@ export default function DashboardScreen() {
 
         <Separator orientation="horizontal" />
 
-        <Text style={styles.sectionTitle}>People</Text>
+        <Text style={[styles.sectionTitle, { color: foreground }]}>People</Text>
         {people.length === 0 && !loading && (
-          <Text style={styles.emptyText}>No transactions yet. Tap + Add Entry to get started.</Text>
+          <Text style={[styles.emptyText, { color: muted }]}>
+            No transactions yet. Tap + Add Entry to get started.
+          </Text>
         )}
         {people.map((person) => (
           <Pressable
@@ -80,8 +89,8 @@ export default function DashboardScreen() {
               <Card.Body>
                 <View style={styles.personRow}>
                   <View style={styles.personInfo}>
-                    <Text style={styles.personName}>{person.personName}</Text>
-                    <Text style={styles.personMeta}>
+                    <Text style={[styles.personName, { color: foreground }]}>{person.personName}</Text>
+                    <Text style={[styles.personMeta, { color: muted }]}>
                       {person.transactionCount} transaction
                       {person.transactionCount !== 1 ? 's' : ''}
                     </Text>
@@ -93,10 +102,10 @@ export default function DashboardScreen() {
                         {
                           color:
                             person.netBalance > 0
-                              ? '#E53935'
+                              ? danger
                               : person.netBalance < 0
-                                ? '#43A047'
-                                : '#666',
+                                ? success
+                                : muted,
                         },
                       ]}>
                       {formatCurrency(Math.abs(person.netBalance))}
@@ -133,7 +142,6 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   scrollContent: {
     padding: 16,
@@ -148,7 +156,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#111',
   },
   cardsRow: {
     flexDirection: 'row',
@@ -161,7 +168,6 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666',
     marginBottom: 4,
   },
   cardAmount: {
@@ -174,7 +180,6 @@ const styles = StyleSheet.create({
   netLabel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666',
     marginBottom: 4,
   },
   netAmount: {
@@ -183,19 +188,16 @@ const styles = StyleSheet.create({
   },
   netHint: {
     fontSize: 13,
-    color: '#999',
     marginTop: 2,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#111',
     marginTop: 16,
     marginBottom: 12,
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
     textAlign: 'center',
     marginTop: 24,
   },
@@ -213,11 +215,9 @@ const styles = StyleSheet.create({
   personName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111',
   },
   personMeta: {
     fontSize: 13,
-    color: '#999',
     marginTop: 2,
   },
   personBalance: {

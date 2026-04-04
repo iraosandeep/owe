@@ -1,5 +1,5 @@
 import { View, ScrollView, Pressable, Text, StyleSheet } from 'react-native';
-import { Card, Chip, Button, Separator } from 'heroui-native';
+import { Card, Chip, Button, Separator, useThemeColor } from 'heroui-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +13,13 @@ export default function TransactionsScreen() {
   const { transactions, loading, reload } = useTransactions(filterPerson);
   const { people, reload: reloadPeople } = useSummary();
   const router = useRouter();
+  const [background, foreground, muted, danger, success] = useThemeColor([
+    'background',
+    'foreground',
+    'muted',
+    'danger',
+    'success',
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -22,9 +29,9 @@ export default function TransactionsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Transactions</Text>
+        <Text style={[styles.title, { color: foreground }]}>Transactions</Text>
         <Button variant="primary" size="md" onPress={() => router.push('/add-entry')}>
           + Add
         </Button>
@@ -56,7 +63,7 @@ export default function TransactionsScreen() {
 
       <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
         {transactions.length === 0 && !loading && (
-          <Text style={styles.emptyText}>No transactions found.</Text>
+          <Text style={[styles.emptyText, { color: muted }]}>No transactions found.</Text>
         )}
         {transactions.map((txn, i) => (
           <View key={txn.id}>
@@ -65,15 +72,15 @@ export default function TransactionsScreen() {
                 <Card.Body>
                   <View style={styles.txnRow}>
                     <View style={styles.txnInfo}>
-                      <Text style={styles.txnPerson}>{txn.personName}</Text>
-                      <Text style={styles.txnDate}>{formatDate(txn.date)}</Text>
+                      <Text style={[styles.txnPerson, { color: foreground }]}>{txn.personName}</Text>
+                      <Text style={[styles.txnDate, { color: muted }]}>{formatDate(txn.date)}</Text>
                     </View>
                     <View style={styles.txnRight}>
                       <Text
                         style={[
                           styles.txnAmount,
                           {
-                            color: txn.type === 'given' ? '#E53935' : '#43A047',
+                            color: txn.type === 'given' ? danger : success,
                           },
                         ]}>
                         {txn.type === 'given' ? '-' : '+'} {formatCurrency(txn.amount)}
@@ -87,7 +94,9 @@ export default function TransactionsScreen() {
                     </View>
                   </View>
                   {txn.interest !== null && txn.interest > 0 && (
-                    <Text style={styles.interestNote}>{txn.interest}% annual interest</Text>
+                    <Text style={[styles.interestNote, { color: muted }]}>
+                      {txn.interest}% annual interest
+                    </Text>
                   )}
                 </Card.Body>
               </Card>
@@ -103,7 +112,6 @@ export default function TransactionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
   },
   header: {
     flexDirection: 'row',
@@ -116,7 +124,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#111',
   },
   filterRow: {
     paddingHorizontal: 16,
@@ -129,7 +136,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: '#999',
     textAlign: 'center',
     marginTop: 40,
   },
@@ -147,11 +153,9 @@ const styles = StyleSheet.create({
   txnPerson: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#111',
   },
   txnDate: {
     fontSize: 13,
-    color: '#999',
     marginTop: 2,
   },
   txnRight: {
@@ -164,7 +168,6 @@ const styles = StyleSheet.create({
   },
   interestNote: {
     fontSize: 12,
-    color: '#888',
     marginTop: 6,
   },
 });

@@ -3,3 +3,31 @@
 @import 'heroui-native/styles';
 
 @source "./node_modules/heroui-native/lib";
+
+@layer theme {
+  @variant light {
+    --background: oklch(0.975 0.008 247);
+    --foreground: oklch(0.25 0.02 247);
+    --accent: oklch(0.64 0.19 251);
+    --accent-foreground: oklch(0.98 0.004 247);
+    --surface: oklch(0.99 0.004 247);
+    --surface-secondary: oklch(0.97 0.008 247);
+    --muted: oklch(0.56 0.018 247);
+    --separator: oklch(0.9 0.014 247);
+    --field-background: oklch(0.99 0.004 247);
+    --field-border: oklch(0.87 0.012 247);
+  }
+
+  @variant dark {
+    --background: oklch(0.18 0.018 247);
+    --foreground: oklch(0.95 0.008 247);
+    --accent: oklch(0.73 0.18 251);
+    --accent-foreground: oklch(0.18 0.018 247);
+    --surface: oklch(0.23 0.018 247);
+    --surface-secondary: oklch(0.27 0.02 247);
+    --muted: oklch(0.7 0.01 247);
+    --separator: oklch(0.34 0.015 247);
+    --field-background: oklch(0.24 0.017 247);
+    --field-border: oklch(0.38 0.015 247);
+  }
+}
