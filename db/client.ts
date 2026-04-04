@@ -2,5 +2,5 @@ import { drizzle } from 'drizzle-orm/expo-sqlite';
 import * as SQLite from 'expo-sqlite';
 import * as schema from './schema';
 
-const expo = SQLite.openDatabaseSync('owe.db');
-export const db = drizzle(expo, { schema });
+export const expoSQLite = SQLite.openDatabaseSync('owe.db');
+export const db = drizzle(expoSQLite, { schema });

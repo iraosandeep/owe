@@ -3,21 +3,24 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { HeroUINativeProvider } from 'heroui-native';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
-import { db } from '@/db/client';
+import { db, expoSQLite } from '@/db/client';
 import { seedDatabase } from '@/db/seed';
 import migrations from '@/drizzle/migrations';
 import '@/global.css';
 import { ThemePreferenceProvider, useThemePreference } from '@/hooks/use-theme-preference';
+import { useDrizzleStudio } from 'expo-drizzle-studio-plugin';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
 export default function RootLayout() {
+  useDrizzleStudio(__DEV__ && Platform.OS !== 'web' ? expoSQLite : null);
+
   const { success, error } = useMigrations(db, migrations);
   const [seeded, setSeeded] = useState(false);
 
