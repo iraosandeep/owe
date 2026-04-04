@@ -1,18 +1,21 @@
-import { View, ScrollView, Text, StyleSheet, Pressable } from 'react-native';
-import { Card, Chip, Separator, useThemeColor } from 'heroui-native';
-import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { Button, Card, Chip, Separator } from 'heroui-native';
+import { eq } from 'drizzle-orm';
+import { useCallback, useState } from 'react';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { db } from '@/db/client';
+import { transactions as transactionsTable } from '@/db/schema';
 import { useTransactions } from '@/hooks/use-transactions';
-import { formatCurrency, formatDate, getInitials } from '@/utils/format';
 import { getAmountWithInterest } from '@/utils/interest';
+import { formatCurrency, formatDate, getInitials } from '@/utils/format';
 
 export default function PersonDetailScreen() {
   const { name } = useLocalSearchParams<{ name: string }>();
   const decodedName = decodeURIComponent(name ?? '');
   const { transactions, loading, reload } = useTransactions(decodedName);
   const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -28,265 +31,175 @@ export default function PersonDetailScreen() {
     .reduce((sum, t) => sum + t.amount, 0);
   const netBalance = totalGiven - totalTaken;
   const phone = transactions.find((t) => t.phone)?.phone ?? null;
-  const [background, foreground, muted, accent, accentForeground, danger, success] = useThemeColor([
-    'background',
-    'foreground',
-    'muted',
-    'accent',
-    'accent-foreground',
-    'danger',
-    'success',
-  ]);
 
-  // Calculate total with interest
   const totalWithInterest = transactions.reduce((sum, t) => {
     const effectiveAmount = getAmountWithInterest(t.amount, t.interest, t.date);
     return t.type === 'given' ? sum + effectiveAmount : sum - effectiveAmount;
   }, 0);
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: background }]}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={[styles.backText, { color: accent }]}>Back</Text>
-        </Pressable>
-        <Text style={[styles.headerTitle, { color: foreground }]}>Person Detail</Text>
-        <View style={{ width: 50 }} />
-      </View>
+  const handleDeletePerson = useCallback(() => {
+    if (!decodedName) return;
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Person Info */}
-        <View style={styles.personHeader}>
-          <View style={[styles.avatar, { backgroundColor: accent }]}>
-            <Text style={[styles.avatarText, { color: accentForeground }]}>{getInitials(decodedName)}</Text>
-          </View>
-          <Text style={[styles.personName, { color: foreground }]}>{decodedName}</Text>
-          {phone && <Text style={[styles.personPhone, { color: muted }]}>{phone}</Text>}
+    Alert.alert(
+      'Delete this person?',
+      `This will delete "${decodedName}" and all related transactions.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('Confirm delete', 'This action cannot be undone.', [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Delete person',
+                style: 'destructive',
+                onPress: async () => {
+                  if (isDeleting) return;
+                  setIsDeleting(true);
+
+                  try {
+                    await db
+                      .delete(transactionsTable)
+                      .where(eq(transactionsTable.personName, decodedName));
+                    Alert.alert('Deleted', `"${decodedName}" was removed.`, [
+                      { text: 'OK', onPress: () => router.back() },
+                    ]);
+                  } catch {
+                    Alert.alert('Error', 'Failed to delete person data. Please try again.');
+                  } finally {
+                    setIsDeleting(false);
+                  }
+                },
+              },
+            ]);
+          },
+        },
+      ]
+    );
+  }, [decodedName, isDeleting, router]);
+
+  return (
+    <ScrollView
+      className="flex-1 bg-background"
+      showsVerticalScrollIndicator={false}
+      contentInsetAdjustmentBehavior="automatic"
+      automaticallyAdjustContentInsets>
+      <View className="bg-background p-4 pb-8">
+        <View className="mb-5 flex-row items-center justify-between">
+          <Pressable onPress={() => router.back()}>
+            <Text className="text-base font-medium text-accent">Back</Text>
+          </Pressable>
+          <Text className="text-lg font-bold text-foreground">Person info</Text>
+          <Button
+            variant="danger-soft"
+            size="sm"
+            onPress={handleDeletePerson}
+            isDisabled={isDeleting}>
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
         </View>
 
-        {/* Summary Cards */}
-        <View style={styles.cardsRow}>
-          <Card variant="default" style={styles.summaryCard}>
+        <View className="mb-5 items-center">
+          <View className="mb-2 h-16 w-16 items-center justify-center rounded-full bg-accent">
+            <Text className="text-2xl font-bold text-accent-foreground">
+              {getInitials(decodedName)}
+            </Text>
+          </View>
+          <Text className="text-2xl font-extrabold text-foreground">{decodedName}</Text>
+          {phone ? <Text className="mt-0.5 text-sm text-muted">{phone}</Text> : null}
+        </View>
+
+        <View className="mb-3 flex-row gap-3">
+          <Card variant="default" className="flex-1">
             <Card.Body>
-              <Text style={[styles.cardLabel, { color: muted }]}>Given</Text>
-              <Text style={[styles.cardAmount, { color: danger }]}>
+              <Text className="mb-1 text-sm font-medium text-muted">Given</Text>
+              <Text className="text-[22px] font-bold text-success">
                 {formatCurrency(totalGiven)}
               </Text>
             </Card.Body>
           </Card>
-          <Card variant="default" style={styles.summaryCard}>
+          <Card variant="default" className="flex-1">
             <Card.Body>
-              <Text style={[styles.cardLabel, { color: muted }]}>Taken</Text>
-              <Text style={[styles.cardAmount, { color: success }]}>
+              <Text className="mb-1 text-sm font-medium text-muted">Taken</Text>
+              <Text className="text-[22px] font-bold text-danger">
                 {formatCurrency(totalTaken)}
               </Text>
             </Card.Body>
           </Card>
         </View>
 
-        <Card variant="secondary" style={styles.netCard}>
+        <Card variant="secondary" className="mb-4">
           <Card.Body>
-            <Text style={[styles.netLabel, { color: muted }]}>Net Balance</Text>
-            <Text style={[styles.netAmount, { color: netBalance >= 0 ? danger : success }]}>
+            <Text className="mb-1 text-sm font-medium text-muted">Net Balance</Text>
+            <Text
+              className={`text-[28px] font-extrabold ${
+                netBalance >= 0 ? 'text-success' : 'text-danger'
+              }`}>
               {formatCurrency(netBalance)}
             </Text>
-            <Text style={[styles.netHint, { color: muted }]}>
+            <Text className="mt-0.5 text-[13px] text-muted">
               {netBalance > 0 ? 'They owe you' : netBalance < 0 ? 'You owe them' : 'All settled'}
             </Text>
           </Card.Body>
         </Card>
 
-        {totalWithInterest !== netBalance && (
-          <Card variant="default" style={styles.interestCard}>
+        {totalWithInterest !== netBalance ? (
+          <Card variant="default" className="mb-4">
             <Card.Body>
-              <Text style={[styles.cardLabel, { color: muted }]}>With Interest</Text>
+              <Text className="mb-1 text-sm font-medium text-muted">With Interest</Text>
               <Text
-                style={[
-                  styles.cardAmount,
-                  {
-                    color: totalWithInterest >= 0 ? danger : success,
-                  },
-                ]}>
+                className={`text-[22px] font-bold ${
+                  totalWithInterest >= 0 ? 'text-success' : 'text-danger'
+                }`}>
                 {formatCurrency(totalWithInterest)}
               </Text>
-              <Text style={[styles.interestHint, { color: muted }]}>
-                Including accrued interest to date
-              </Text>
+              <Text className="mt-0.5 text-xs text-muted">Including accrued interest to date</Text>
             </Card.Body>
           </Card>
-        )}
+        ) : null}
 
         <Separator orientation="horizontal" />
 
-        {/* Transactions */}
-        <Text style={[styles.sectionTitle, { color: foreground }]}>Transactions</Text>
-        {transactions.length === 0 && !loading && (
-          <Text style={[styles.emptyText, { color: muted }]}>No transactions found.</Text>
-        )}
+        <Text className="mb-3 mt-4 text-xl font-bold text-foreground">Transactions</Text>
+        {transactions.length === 0 && !loading ? (
+          <Text className="mt-6 text-center text-sm text-muted">No transactions found.</Text>
+        ) : null}
+
         {transactions.map((txn) => (
-          <Card key={txn.id} variant="default" style={styles.txnCard}>
+          <Card key={txn.id} variant="default" className="mb-2">
             <Card.Body>
-              <View style={styles.txnRow}>
-                <View style={styles.txnInfo}>
+              <View className="flex-row items-center justify-between">
+                <View className="flex-row items-center gap-2">
                   <Chip
                     variant="soft"
                     size="sm"
-                    color={txn.type === 'given' ? 'danger' : 'success'}>
+                    color={txn.type === 'given' ? 'success' : 'danger'}>
                     <Chip.Label>{txn.type === 'given' ? 'Given' : 'Taken'}</Chip.Label>
                   </Chip>
-                  <Text style={[styles.txnDate, { color: muted }]}>{formatDate(txn.date)}</Text>
+                  <Text className="text-[13px] text-muted">{formatDate(txn.date)}</Text>
                 </View>
                 <Text
-                  style={[
-                    styles.txnAmount,
-                    {
-                      color: txn.type === 'given' ? danger : success,
-                    },
-                  ]}>
+                  className={`text-lg font-bold ${
+                    txn.type === 'given' ? 'text-success' : 'text-danger'
+                  }`}>
                   {formatCurrency(txn.amount)}
                 </Text>
               </View>
-              {txn.interest !== null && txn.interest > 0 && (
-                <View style={styles.interestRow}>
-                  <Text style={[styles.interestNote, { color: muted }]}>{txn.interest}% interest</Text>
-                  <Text style={[styles.interestNote, { color: muted }]}>
+
+              {txn.interest !== null && txn.interest > 0 ? (
+                <View className="mt-1.5 flex-row items-center justify-between">
+                  <Text className="text-xs text-muted">{txn.interest}% interest</Text>
+                  <Text className="text-xs text-muted">
                     Current:{' '}
                     {formatCurrency(getAmountWithInterest(txn.amount, txn.interest, txn.date))}
                   </Text>
                 </View>
-              )}
+              ) : null}
             </Card.Body>
           </Card>
         ))}
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  personHeader: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  avatar: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  avatarText: {
-    fontSize: 24,
-    fontWeight: '700',
-  },
-  personName: {
-    fontSize: 24,
-    fontWeight: '800',
-  },
-  personPhone: {
-    fontSize: 14,
-    marginTop: 2,
-  },
-  cardsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  summaryCard: {
-    flex: 1,
-  },
-  cardLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  cardAmount: {
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  netCard: {
-    marginBottom: 16,
-  },
-  netLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  netAmount: {
-    fontSize: 28,
-    fontWeight: '800',
-  },
-  netHint: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  interestCard: {
-    marginBottom: 16,
-  },
-  interestHint: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 16,
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 24,
-  },
-  txnCard: {
-    marginBottom: 8,
-  },
-  txnRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  txnInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  txnDate: {
-    fontSize: 13,
-  },
-  txnAmount: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  interestRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 6,
-  },
-  interestNote: {
-    fontSize: 12,
-  },
-});

@@ -1,22 +1,15 @@
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useSummary } from '@/hooks/use-summary';
+import { formatCurrency } from '@/utils/format';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Button, Card, Chip, Separator, useThemeColor } from 'heroui-native';
 import { useCallback } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-import { useSummary } from '@/hooks/use-summary';
-import { formatCurrency } from '@/utils/format';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 export default function DashboardScreen() {
   const { summary, people, loading, reload } = useSummary();
   const router = useRouter();
-  const [background, foreground, muted, danger, success] = useThemeColor([
-    'background',
-    'foreground',
-    'muted',
-    'danger',
-    'success',
-  ]);
+  const accent = useThemeColor('accent');
 
   useFocusEffect(
     useCallback(() => {
@@ -25,45 +18,48 @@ export default function DashboardScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: background }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={[styles.title, { color: foreground }]}>Owe</Text>
-          <Button variant="primary" size="md" onPress={() => router.push('/add-entry')}>
-            + Add Entry
+    <ScrollView
+      className="flex-1 bg-background"
+      showsVerticalScrollIndicator={false}
+      contentInsetAdjustmentBehavior="automatic"
+      automaticallyAdjustContentInsets>
+      <View className="p-4 pb-8 bg-background">
+        <View className="flex-row justify-between items-center mb-5">
+          <Text className="text-3xl font-extrabold text-foreground">Owe</Text>
+          <Button variant="ghost" size="sm" onPress={() => router.push('/add-entry')}>
+            <IconSymbol name="plus.circle" size={28} color={accent} />
           </Button>
         </View>
 
-        <View style={styles.cardsRow}>
-          <Card variant="default" style={styles.summaryCard}>
+        <View className="mb-3 flex-row gap-3">
+          <Card variant="default" className="flex-1">
             <Card.Body>
-              <Text style={[styles.cardLabel, { color: muted }]}>Given</Text>
-              <Text style={[styles.cardAmount, { color: danger }]}>
+              <Text className="mb-1 text-sm font-medium text-muted">Given</Text>
+              <Text className="text-[22px] font-bold text-success">
                 {formatCurrency(summary.totalGiven)}
               </Text>
             </Card.Body>
           </Card>
-          <Card variant="default" style={styles.summaryCard}>
+          <Card variant="default" className="flex-1">
             <Card.Body>
-              <Text style={[styles.cardLabel, { color: muted }]}>Taken</Text>
-              <Text style={[styles.cardAmount, { color: success }]}>
+              <Text className="mb-1 text-sm font-medium text-muted">Taken</Text>
+              <Text className="text-[22px] font-bold text-danger">
                 {formatCurrency(summary.totalTaken)}
               </Text>
             </Card.Body>
           </Card>
         </View>
 
-        <Card variant="secondary" style={styles.netCard}>
+        <Card variant="tertiary" className="mb-5">
           <Card.Body>
-            <Text style={[styles.netLabel, { color: muted }]}>Net Balance</Text>
+            <Text className="mb-1 text-sm font-medium text-muted">Net Balance</Text>
             <Text
-              style={[
-                styles.netAmount,
-                { color: summary.netBalance >= 0 ? danger : success },
-              ]}>
+              className={`text-[28px] font-extrabold ${
+                summary.netBalance >= 0 ? 'text-success' : 'text-danger'
+              }`}>
               {formatCurrency(summary.netBalance)}
             </Text>
-            <Text style={[styles.netHint, { color: muted }]}>
+            <Text className="mt-0.5 text-[13px] text-muted">
               {summary.netBalance > 0
                 ? 'Others owe you'
                 : summary.netBalance < 0
@@ -75,39 +71,35 @@ export default function DashboardScreen() {
 
         <Separator orientation="horizontal" />
 
-        <Text style={[styles.sectionTitle, { color: foreground }]}>People</Text>
+        <Text className="mb-3 mt-4 text-xl font-bold text-foreground">People</Text>
         {people.length === 0 && !loading && (
-          <Text style={[styles.emptyText, { color: muted }]}>
-            No transactions yet. Tap + Add Entry to get started.
-          </Text>
+          <Text className="mt-6 text-center text-sm text-muted">No transactions yet.</Text>
         )}
         {people.map((person) => (
           <Pressable
             key={person.personName}
             onPress={() => router.push(`/person/${encodeURIComponent(person.personName)}`)}>
-            <Card variant="default" style={styles.personCard}>
+            <Card variant="default" className="mb-2">
               <Card.Body>
-                <View style={styles.personRow}>
-                  <View style={styles.personInfo}>
-                    <Text style={[styles.personName, { color: foreground }]}>{person.personName}</Text>
-                    <Text style={[styles.personMeta, { color: muted }]}>
+                <View className="flex-row items-center justify-between">
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold text-foreground">
+                      {person.personName}
+                    </Text>
+                    <Text className="mt-0.5 text-[13px] text-muted">
                       {person.transactionCount} transaction
                       {person.transactionCount !== 1 ? 's' : ''}
                     </Text>
                   </View>
-                  <View style={styles.personBalance}>
+                  <View className="items-end gap-1">
                     <Text
-                      style={[
-                        styles.personAmount,
-                        {
-                          color:
-                            person.netBalance > 0
-                              ? danger
-                              : person.netBalance < 0
-                                ? success
-                                : muted,
-                        },
-                      ]}>
+                      className={`text-lg font-bold ${
+                        person.netBalance > 0
+                            ? 'text-success'
+                            : person.netBalance < 0
+                              ? 'text-danger'
+                            : 'text-muted'
+                      }`}>
                       {formatCurrency(Math.abs(person.netBalance))}
                     </Text>
                     <Chip
@@ -115,10 +107,10 @@ export default function DashboardScreen() {
                       size="sm"
                       color={
                         person.netBalance > 0
-                          ? 'danger'
-                          : person.netBalance < 0
                             ? 'success'
-                            : 'default'
+                            : person.netBalance < 0
+                              ? 'danger'
+                              : 'default'
                       }>
                       <Chip.Label>
                         {person.netBalance > 0
@@ -134,98 +126,7 @@ export default function DashboardScreen() {
             </Card>
           </Pressable>
         ))}
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 32,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: '800',
-  },
-  cardsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
-  summaryCard: {
-    flex: 1,
-  },
-  cardLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  cardAmount: {
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  netCard: {
-    marginBottom: 20,
-  },
-  netLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  netAmount: {
-    fontSize: 28,
-    fontWeight: '800',
-  },
-  netHint: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    marginTop: 16,
-    marginBottom: 12,
-  },
-  emptyText: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 24,
-  },
-  personCard: {
-    marginBottom: 8,
-  },
-  personRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  personInfo: {
-    flex: 1,
-  },
-  personName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  personMeta: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  personBalance: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  personAmount: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-});

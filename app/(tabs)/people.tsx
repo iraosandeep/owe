@@ -1,8 +1,7 @@
 import { useFocusEffect, useRouter } from 'expo-router';
-import { Card, Chip, useThemeColor } from 'heroui-native';
+import { Card, Chip } from 'heroui-native';
 import { useCallback } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useSummary } from '@/hooks/use-summary';
 import { formatCurrency, getInitials } from '@/utils/format';
@@ -10,15 +9,6 @@ import { formatCurrency, getInitials } from '@/utils/format';
 export default function PeopleScreen() {
   const { people, loading, reload } = useSummary();
   const router = useRouter();
-  const [background, foreground, muted, accent, accentForeground, danger, success] = useThemeColor([
-    'background',
-    'foreground',
-    'muted',
-    'accent',
-    'accent-foreground',
-    'danger',
-    'success',
-  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -27,140 +17,83 @@ export default function PeopleScreen() {
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: background }]}>
-      <Text style={[styles.title, { color: foreground }]}>People</Text>
-      <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      className="flex-1 bg-background"
+      showsVerticalScrollIndicator={false}
+      contentInsetAdjustmentBehavior="automatic"
+      automaticallyAdjustContentInsets>
+      <View className="p-4 pb-8 bg-background">
+        <View className="mb-5">
+          <Text className="text-[28px] font-extrabold text-foreground">People</Text>
+        </View>
+
         {people.length === 0 && !loading && (
-          <Text style={[styles.emptyText, { color: muted }]}>No people yet.</Text>
+          <Text className="mt-10 text-center text-sm text-muted">No people yet.</Text>
         )}
+
         {people.map((person) => (
-          <Pressable
-            key={person.personName}
-            onPress={() => router.push(`/person/${encodeURIComponent(person.personName)}`)}>
-            <Card variant="default" style={styles.personCard}>
-              <Card.Body>
-                <View style={styles.personRow}>
-                  <View style={[styles.avatar, { backgroundColor: accent }]}>
-                    <Text style={[styles.avatarText, { color: accentForeground }]}>
-                      {getInitials(person.personName)}
-                    </Text>
-                  </View>
-                  <View style={styles.personInfo}>
-                    <Text style={[styles.personName, { color: foreground }]}>
-                      {person.personName}
-                    </Text>
-                    {person.phone && (
-                      <Text style={[styles.personPhone, { color: muted }]}>{person.phone}</Text>
-                    )}
-                    <Text style={[styles.personMeta, { color: muted }]}>
-                      {person.transactionCount} transaction
-                      {person.transactionCount !== 1 ? 's' : ''}
-                    </Text>
-                  </View>
-                  <View style={styles.personBalance}>
-                    <Text
-                      style={[
-                        styles.personAmount,
-                        {
-                          color:
-                            person.netBalance > 0
-                              ? danger
+          <View key={person.personName} className="my-1">
+            <Pressable
+              onPress={() => router.push(`/person/${encodeURIComponent(person.personName)}`)}>
+              <Card variant="default">
+                <Card.Body>
+                  <View className="flex-row items-center gap-3">
+                    <View className="h-11 w-11 items-center justify-center rounded-full bg-accent">
+                      <Text className="text-base font-bold text-accent-foreground">
+                        {getInitials(person.personName)}
+                      </Text>
+                    </View>
+
+                    <View className="flex-1">
+                      <Text className="text-base font-semibold text-foreground">
+                        {person.personName}
+                      </Text>
+                      {person.phone ? (
+                        <Text className="mt-px text-[13px] text-muted">{person.phone}</Text>
+                      ) : null}
+                      <Text className="mt-px text-xs text-muted">
+                        {person.transactionCount} transaction
+                        {person.transactionCount !== 1 ? 's' : ''}
+                      </Text>
+                    </View>
+
+                    <View className="items-end gap-1">
+                      <Text
+                        className={`text-[17px] font-bold ${
+                          person.netBalance > 0
+                              ? 'text-success'
                               : person.netBalance < 0
-                                ? success
-                                : muted,
-                        },
-                      ]}>
-                      {formatCurrency(Math.abs(person.netBalance))}
-                    </Text>
-                    <Chip
-                      variant="soft"
-                      size="sm"
+                                ? 'text-danger'
+                              : 'text-muted'
+                        }`}>
+                        {formatCurrency(Math.abs(person.netBalance))}
+                      </Text>
+                      <Chip
+                        variant="soft"
+                        size="sm"
                       color={
                         person.netBalance > 0
-                          ? 'danger'
-                          : person.netBalance < 0
                             ? 'success'
-                            : 'default'
+                            : person.netBalance < 0
+                              ? 'danger'
+                              : 'default'
                       }>
-                      <Chip.Label>
-                        {person.netBalance > 0
-                          ? 'Owes you'
-                          : person.netBalance < 0
-                            ? 'You owe'
-                            : 'Settled'}
-                      </Chip.Label>
-                    </Chip>
+                        <Chip.Label>
+                          {person.netBalance > 0
+                            ? 'Owes you'
+                            : person.netBalance < 0
+                              ? 'You owe'
+                              : 'Settled'}
+                        </Chip.Label>
+                      </Chip>
+                    </View>
                   </View>
-                </View>
-              </Card.Body>
-            </Card>
-          </Pressable>
+                </Card.Body>
+              </Card>
+            </Pressable>
+          </View>
         ))}
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-  emptyText: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 40,
-  },
-  personCard: {
-    marginBottom: 8,
-  },
-  personRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  avatarText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  personInfo: {
-    flex: 1,
-  },
-  personName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  personPhone: {
-    fontSize: 13,
-    marginTop: 1,
-  },
-  personMeta: {
-    fontSize: 12,
-    marginTop: 1,
-  },
-  personBalance: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  personAmount: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-});

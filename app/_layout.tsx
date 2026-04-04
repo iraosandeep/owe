@@ -25,6 +25,7 @@ export default function RootLayout() {
   const [seeded, setSeeded] = useState(false);
 
   useEffect(() => {
+    // TODO: remove this for when publish
     if (success) {
       seedDatabase().then(() => setSeeded(true));
     }
@@ -36,14 +37,14 @@ export default function RootLayout() {
 
   if (!success || !seeded) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View className="flex-1 justify-center items-center">
         <ActivityIndicator size="large" />
       </View>
     );
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView className="flex-1">
       <ThemePreferenceProvider>
         <AppContent />
       </ThemePreferenceProvider>
@@ -61,15 +62,17 @@ function AppContent() {
         <Stack.Screen
           name="add-entry"
           options={{
-            presentation: 'modal',
+            presentation: 'formSheet',
             title: 'Add Entry',
             headerShown: false,
+            sheetGrabberVisible: true,
           }}
         />
         <Stack.Screen
           name="person/[name]"
           options={{
-            title: 'Person',
+            presentation: 'formSheet',
+            sheetGrabberVisible: true,
             headerShown: false,
           }}
         />

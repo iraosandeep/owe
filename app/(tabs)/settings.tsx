@@ -1,8 +1,9 @@
-import { Card, Chip, Separator, useThemeColor } from 'heroui-native';
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { db } from '@/db/client';
+import { transactions } from '@/db/schema';
 import { type ThemeMode, useThemePreference } from '@/hooks/use-theme-preference';
+import { Button, Card, Description, Label, Radio, RadioGroup } from 'heroui-native';
+import { useCallback, useState } from 'react';
+import { Alert, ScrollView, Text, View } from 'react-native';
 
 const THEME_OPTIONS: { value: ThemeMode; label: string; description: string }[] = [
   {
@@ -23,104 +24,106 @@ const THEME_OPTIONS: { value: ThemeMode; label: string; description: string }[] 
 ];
 
 export default function SettingsScreen() {
-  const { mode, resolvedTheme, setMode } = useThemePreference();
-  const [background, foreground, muted] = useThemeColor(['background', 'foreground', 'muted']);
+  const { mode, setMode } = useThemePreference();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteAllData = useCallback(() => {
+    Alert.alert('Delete all data?', 'This will remove all transactions from this device.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Continue',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(
+            'Are you absolutely sure?',
+            'This action cannot be undone.',
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Delete everything',
+                style: 'destructive',
+                onPress: async () => {
+                  if (isDeleting) return;
+                  setIsDeleting(true);
+                  try {
+                    await db.delete(transactions);
+                    Alert.alert('Done', 'All transaction data has been deleted.');
+                  } catch {
+                    Alert.alert('Error', 'Failed to delete data. Please try again.');
+                  } finally {
+                    setIsDeleting(false);
+                  }
+                },
+              },
+            ],
+            { cancelable: true }
+          );
+        },
+      },
+    ]);
+  }, [isDeleting]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: background }]}>
-      <Text style={[styles.title, { color: foreground }]}>Settings</Text>
+    <ScrollView
+      className="flex-1 bg-background"
+      showsVerticalScrollIndicator={false}
+      contentInsetAdjustmentBehavior="automatic"
+      automaticallyAdjustContentInsets>
+      <View className="bg-background p-4 pb-8">
+        <View className="mb-5">
+          <Text className="text-[28px] font-extrabold text-foreground">Settings</Text>
+        </View>
 
-      <Card variant="default">
-        <Card.Body>
-          <Text style={[styles.sectionTitle, { color: foreground }]}>Appearance</Text>
-          <Text style={[styles.subtitle, { color: muted }]}>
-            Choose how the app looks on your device.
-          </Text>
+        <Card variant="default">
+          <Card.Body>
+            <Text className="text-lg font-bold text-foreground">Appearance</Text>
+            <Text className="mb-3 mt-1 text-sm text-muted">
+              Choose how the app looks on your device.
+            </Text>
 
-          <View style={styles.options}>
-            {THEME_OPTIONS.map((option, index) => {
-              const isSelected = mode === option.value;
-              return (
-                <View key={option.value}>
-                  <View style={styles.optionRow}>
-                    <View style={styles.optionText}>
-                      <Text style={[styles.optionLabel, { color: foreground }]}>
+            <RadioGroup value={mode} onValueChange={(value) => setMode(value as ThemeMode)}>
+              {THEME_OPTIONS.map((option, index) => (
+                <RadioGroup.Item key={option.value} value={option.value}>
+                  <View
+                    className={`flex-row items-center justify-between py-2 ${
+                      index < THEME_OPTIONS.length - 1 ? 'border-b border-separator' : ''
+                    }`}>
+                    <View className="flex-1 pr-3">
+                      <Label className="text-base font-semibold text-foreground">
                         {option.label}
-                      </Text>
-                      <Text style={[styles.optionDescription, { color: muted }]}>
+                      </Label>
+                      <Description className="mt-0.5 text-[13px] text-muted">
                         {option.description}
-                      </Text>
+                      </Description>
                     </View>
-                    <Chip
-                      variant={isSelected ? 'primary' : 'secondary'}
-                      size="sm"
-                      onPress={() => setMode(option.value)}>
-                      <Chip.Label>{isSelected ? 'Selected' : 'Select'}</Chip.Label>
-                    </Chip>
+                    <Radio>
+                      <Radio.Indicator>
+                        <Radio.IndicatorThumb />
+                      </Radio.Indicator>
+                    </Radio>
                   </View>
-                  {index < THEME_OPTIONS.length - 1 && <Separator orientation="horizontal" />}
-                </View>
-              );
-            })}
-          </View>
-        </Card.Body>
-      </Card>
+                </RadioGroup.Item>
+              ))}
+            </RadioGroup>
+          </Card.Body>
+        </Card>
 
-      <Text style={[styles.currentMode, { color: muted }]}>
-        Active theme:{' '}
-        <Text style={[styles.currentModeValue, { color: foreground }]}>{resolvedTheme}</Text>
-      </Text>
-    </SafeAreaView>
+        <Card variant="default" className="mt-4">
+          <Card.Body>
+            <Text className="text-lg font-bold text-foreground">Danger Zone</Text>
+            <Text className="mb-3 mt-1 text-sm text-muted">
+              Permanently delete all locally stored transactions.
+            </Text>
+            <Button
+              variant="danger"
+              size="md"
+              onPress={handleDeleteAllData}
+              isDisabled={isDeleting}>
+              {isDeleting ? 'Deleting...' : 'Delete all data'}
+            </Button>
+          </Card.Body>
+        </Card>
+      </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  subtitle: {
-    fontSize: 14,
-    marginTop: 4,
-    marginBottom: 12,
-  },
-  options: {
-    gap: 10,
-  },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  optionText: {
-    flex: 1,
-    paddingRight: 12,
-  },
-  optionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  optionDescription: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  currentMode: {
-    fontSize: 14,
-    marginTop: 16,
-  },
-  currentModeValue: {
-    fontWeight: '700',
-    textTransform: 'capitalize',
-  },
-});

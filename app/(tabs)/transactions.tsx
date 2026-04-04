@@ -1,173 +1,150 @@
-import { View, ScrollView, Pressable, Text, StyleSheet } from 'react-native';
-import { Card, Chip, Button, Separator, useThemeColor } from 'heroui-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Button, Card, Chip, SearchField, useThemeColor } from 'heroui-native';
+import { useCallback, useMemo, useState } from 'react';
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import Swipeable from 'react-native-gesture-handler/Swipeable';
 
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { useTransactions } from '@/hooks/use-transactions';
-import { useSummary } from '@/hooks/use-summary';
 import { formatCurrency, formatDate } from '@/utils/format';
 
 export default function TransactionsScreen() {
-  const [filterPerson, setFilterPerson] = useState<string | undefined>();
-  const { transactions, loading, reload } = useTransactions(filterPerson);
-  const { people, reload: reloadPeople } = useSummary();
+  const accent = useThemeColor('accent');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [deletingTransactionId, setDeletingTransactionId] = useState<string | null>(null);
+  const { transactions, loading, reload, deleteTransaction } = useTransactions();
   const router = useRouter();
-  const [background, foreground, muted, danger, success] = useThemeColor([
-    'background',
-    'foreground',
-    'muted',
-    'danger',
-    'success',
-  ]);
 
   useFocusEffect(
     useCallback(() => {
       reload();
-      reloadPeople();
-    }, [reload, reloadPeople])
+    }, [reload])
+  );
+
+  const filteredTransactions = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) return transactions;
+
+    return transactions.filter((txn) => {
+      const personMatch = txn.personName.toLowerCase().includes(normalizedQuery);
+      const phoneMatch = (txn.phone ?? '').toLowerCase().includes(normalizedQuery);
+      return personMatch || phoneMatch;
+    });
+  }, [searchQuery, transactions]);
+
+  const handleDeleteTransaction = useCallback(
+    (transactionId: string, personName: string) => {
+      Alert.alert('Delete transaction?', `This transaction for ${personName} will be removed.`, [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            if (deletingTransactionId) return;
+            setDeletingTransactionId(transactionId);
+            try {
+              await deleteTransaction(transactionId);
+            } catch {
+              Alert.alert('Error', 'Failed to delete transaction. Please try again.');
+            } finally {
+              setDeletingTransactionId(null);
+            }
+          },
+        },
+      ]);
+    },
+    [deleteTransaction, deletingTransactionId]
+  );
+
+  const renderRightActions = useCallback(
+    (transactionId: string, personName: string) => (
+      <View className="my-1 justify-center">
+        <Pressable
+          className="h-full w-24 items-center justify-center rounded-2xl bg-danger px-3"
+          onPress={() => handleDeleteTransaction(transactionId, personName)}
+          disabled={deletingTransactionId !== null}>
+          <Text className="text-sm font-semibold text-danger-foreground">
+            {deletingTransactionId === transactionId ? 'Deleting...' : 'Delete'}
+          </Text>
+        </Pressable>
+      </View>
+    ),
+    [deletingTransactionId, handleDeleteTransaction]
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: background }]}>
-      <View style={styles.header}>
-        <Text style={[styles.title, { color: foreground }]}>Transactions</Text>
-        <Button variant="primary" size="md" onPress={() => router.push('/add-entry')}>
-          + Add
-        </Button>
-      </View>
+    <ScrollView
+      className="flex-1 bg-background"
+      showsVerticalScrollIndicator={false}
+      contentInsetAdjustmentBehavior="automatic"
+      automaticallyAdjustContentInsets>
+      <View className="p-4 pb-8 bg-background">
+        <View className="flex-row items-center justify-between mb-5">
+          <Text className="text-[28px] font-extrabold text-foreground">Transactions</Text>
+          <Button variant="ghost" size="sm" onPress={() => router.push('/add-entry')}>
+            <IconSymbol name="plus.circle" size={28} color={accent} />
+          </Button>
+        </View>
 
-      {people.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterRow}>
-          <Pressable onPress={() => setFilterPerson(undefined)}>
-            <Chip variant={filterPerson === undefined ? 'primary' : 'secondary'} size="sm">
-              <Chip.Label>All</Chip.Label>
-            </Chip>
-          </Pressable>
-          {people.map((p) => (
-            <Pressable
-              key={p.personName}
-              onPress={() =>
-                setFilterPerson(filterPerson === p.personName ? undefined : p.personName)
-              }>
-              <Chip variant={filterPerson === p.personName ? 'primary' : 'secondary'} size="sm">
-                <Chip.Label>{p.personName}</Chip.Label>
-              </Chip>
-            </Pressable>
-          ))}
-        </ScrollView>
-      )}
+        <SearchField value={searchQuery} onChange={setSearchQuery} className="pb-2">
+          <SearchField.Group>
+            <SearchField.SearchIcon />
+            <SearchField.Input placeholder="Search by person or phone" />
+            <SearchField.ClearButton />
+          </SearchField.Group>
+        </SearchField>
 
-      <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
-        {transactions.length === 0 && !loading && (
-          <Text style={[styles.emptyText, { color: muted }]}>No transactions found.</Text>
+        {filteredTransactions.length === 0 && !loading && (
+          <Text className="mt-10 text-center text-sm text-muted">No transactions found.</Text>
         )}
-        {transactions.map((txn, i) => (
-          <View key={txn.id}>
-            <Pressable onPress={() => router.push(`/person/${encodeURIComponent(txn.personName)}`)}>
-              <Card variant="default" style={styles.txnCard}>
+
+        {filteredTransactions.map((txn) => (
+          <View key={txn.id} className="my-1">
+            <Swipeable
+              overshootRight={false}
+              renderRightActions={() => renderRightActions(txn.id, txn.personName)}>
+              <Card variant="default">
                 <Card.Body>
-                  <View style={styles.txnRow}>
-                    <View style={styles.txnInfo}>
-                      <Text style={[styles.txnPerson, { color: foreground }]}>{txn.personName}</Text>
-                      <Text style={[styles.txnDate, { color: muted }]}>{formatDate(txn.date)}</Text>
+                  <Pressable
+                    onPress={() => router.push(`/person/${encodeURIComponent(txn.personName)}`)}>
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-1">
+                        <Text className="text-base font-semibold text-foreground">
+                          {txn.personName}
+                        </Text>
+                        <Text className="mt-0.5 text-[13px] text-muted">
+                          {formatDate(txn.date)}
+                        </Text>
+                      </View>
+
+                      <View className="items-end gap-1">
+                        <Text
+                          className={`text-[17px] font-bold ${
+                            txn.type === 'given' ? 'text-success' : 'text-danger'
+                          }`}>
+                          {txn.type === 'given' ? '+' : '-'} {formatCurrency(txn.amount)}
+                        </Text>
+                        <Chip
+                          variant="soft"
+                          size="sm"
+                          color={txn.type === 'given' ? 'success' : 'danger'}>
+                          <Chip.Label>{txn.type === 'given' ? 'Given' : 'Taken'}</Chip.Label>
+                        </Chip>
+                      </View>
                     </View>
-                    <View style={styles.txnRight}>
-                      <Text
-                        style={[
-                          styles.txnAmount,
-                          {
-                            color: txn.type === 'given' ? danger : success,
-                          },
-                        ]}>
-                        {txn.type === 'given' ? '-' : '+'} {formatCurrency(txn.amount)}
+
+                    {txn.interest !== null && txn.interest > 0 && (
+                      <Text className="mt-1.5 text-xs text-muted">
+                        {txn.interest}% annual interest
                       </Text>
-                      <Chip
-                        variant="soft"
-                        size="sm"
-                        color={txn.type === 'given' ? 'danger' : 'success'}>
-                        <Chip.Label>{txn.type === 'given' ? 'Given' : 'Taken'}</Chip.Label>
-                      </Chip>
-                    </View>
-                  </View>
-                  {txn.interest !== null && txn.interest > 0 && (
-                    <Text style={[styles.interestNote, { color: muted }]}>
-                      {txn.interest}% annual interest
-                    </Text>
-                  )}
+                    )}
+                  </Pressable>
                 </Card.Body>
               </Card>
-            </Pressable>
-            {i < transactions.length - 1 && <Separator orientation="horizontal" />}
+            </Swipeable>
           </View>
         ))}
-      </ScrollView>
-    </SafeAreaView>
+      </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-  },
-  filterRow: {
-    paddingHorizontal: 16,
-    gap: 8,
-    paddingBottom: 12,
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 32,
-  },
-  emptyText: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginTop: 40,
-  },
-  txnCard: {
-    marginVertical: 4,
-  },
-  txnRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  txnInfo: {
-    flex: 1,
-  },
-  txnPerson: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  txnDate: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  txnRight: {
-    alignItems: 'flex-end',
-    gap: 4,
-  },
-  txnAmount: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  interestNote: {
-    fontSize: 12,
-    marginTop: 6,
-  },
-});

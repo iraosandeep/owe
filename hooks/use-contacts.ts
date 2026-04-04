@@ -37,19 +37,56 @@ export function useContacts() {
     };
   }, [hasPermission, requestPermission]);
 
+  const getAllContacts = useCallback(async (): Promise<ContactEntry[]> => {
+    let granted = hasPermission;
+    if (granted === null) {
+      granted = await requestPermission();
+    }
+    if (!granted) return [];
+
+    const contacts: ContactEntry[] = [];
+    let pageOffset = 0;
+    let hasNextPage = true;
+    const pageSize = 500;
+
+    while (hasNextPage) {
+      const result = await Contacts.getContactsAsync({
+        fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Name],
+        sort: Contacts.SortTypes.FirstName,
+        pageSize,
+        pageOffset,
+      });
+
+      contacts.push(
+        ...result.data
+          .filter((c) => c.name)
+          .map((c) => ({
+            name: c.name!,
+            phone: c.phoneNumbers?.[0]?.number ?? null,
+          }))
+      );
+
+      hasNextPage = Boolean(result.hasNextPage);
+      pageOffset += pageSize;
+    }
+
+    return contacts;
+  }, [hasPermission, requestPermission]);
+
   const searchContacts = useCallback(
-    async (query: string): Promise<ContactEntry[]> => {
+    async (query: string, pageSize = 20): Promise<ContactEntry[]> => {
       let granted = hasPermission;
       if (granted === null) {
         granted = await requestPermission();
       }
       if (!granted) return [];
 
+      const trimmedQuery = query.trim();
       const { data } = await Contacts.getContactsAsync({
         fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Name],
-        name: query,
+        ...(trimmedQuery ? { name: trimmedQuery } : {}),
         sort: Contacts.SortTypes.FirstName,
-        pageSize: 20,
+        pageSize,
       });
 
       return data
@@ -62,5 +99,5 @@ export function useContacts() {
     [hasPermission, requestPermission]
   );
 
-  return { hasPermission, requestPermission, searchContacts, pickContact };
+  return { hasPermission, requestPermission, searchContacts, pickContact, getAllContacts };
 }
