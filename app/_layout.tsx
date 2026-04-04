@@ -1,15 +1,15 @@
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { HeroUINativeProvider } from 'heroui-native';
+import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { HeroUINativeProvider } from 'heroui-native';
 import { useEffect, useState } from 'react';
-import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { ActivityIndicator, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
 import { db } from '@/db/client';
-import migrations from '@/drizzle/migrations';
 import { seedDatabase } from '@/db/seed';
+import migrations from '@/drizzle/migrations';
 import '@/global.css';
 
 export const unstable_settings = {
