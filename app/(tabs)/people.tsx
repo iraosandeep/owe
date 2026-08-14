@@ -24,7 +24,7 @@ export default function PeopleScreen() {
       automaticallyAdjustContentInsets>
       <View className="p-4 pb-8 bg-background">
         <View className="mb-5">
-          <Text className="text-[28px] font-extrabold text-foreground">People</Text>
+          <Text className="text-[28px] font-extrabold text-foreground">Users</Text>
         </View>
 
         {people.length === 0 && !loading && (
@@ -61,9 +61,9 @@ export default function PeopleScreen() {
                       <Text
                         className={`text-[17px] font-bold ${
                           person.netBalance > 0
-                              ? 'text-success'
-                              : person.netBalance < 0
-                                ? 'text-danger'
+                            ? 'text-success'
+                            : person.netBalance < 0
+                              ? 'text-danger'
                               : 'text-muted'
                         }`}>
                         {formatCurrency(Math.abs(person.netBalance))}
@@ -71,13 +71,13 @@ export default function PeopleScreen() {
                       <Chip
                         variant="soft"
                         size="sm"
-                      color={
-                        person.netBalance > 0
+                        color={
+                          person.netBalance > 0
                             ? 'success'
                             : person.netBalance < 0
                               ? 'danger'
                               : 'default'
-                      }>
+                        }>
                         <Chip.Label>
                           {person.netBalance > 0
                             ? 'Owes you'

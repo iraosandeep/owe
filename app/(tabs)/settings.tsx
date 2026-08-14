@@ -71,7 +71,8 @@ export default function SettingsScreen() {
       automaticallyAdjustContentInsets>
       <View className="bg-background p-4 pb-8">
         <View className="mb-5">
-          <Text className="text-[28px] font-extrabold text-foreground">Settings</Text>
+          <Text className="text-[28px] font-extrabold text-foreground">Setting</Text>
+          <></>
         </View>
 
         <Card variant="default">
