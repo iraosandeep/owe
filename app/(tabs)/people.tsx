@@ -9,6 +9,7 @@ import { formatCurrency, getInitials } from '@/utils/format';
 export default function PeopleScreen() {
   const { people, loading, reload } = useSummary();
   const router = useRouter();
+  const r = "";
 
   useFocusEffect(
     useCallback(() => {
