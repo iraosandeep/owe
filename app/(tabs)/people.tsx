@@ -24,7 +24,7 @@ export default function PeopleScreen() {
       automaticallyAdjustContentInsets>
       <View className="p-4 pb-8 bg-background">
         <View className="mb-5">
-          <Text className="text-[28px] font-extrabold text-foreground">Users</Text>
+          <Text className="text-[28px] font-extrabold text-foreground">People</Text>
         </View>
 
         {people.length === 0 && !loading && (
